@@ -1,49 +1,56 @@
-var static = require('node-static'),
-	http = require('http'),
-	util = require('util'),
-	url = require('url'),
-	fs = require('fs');
+var fs = require('fs');
 
 var app = require('express')();
+var server = require('http').createServer(app);
 
-app.configure(function(){
-  app.use('/', express.static(__dirname + '/static'));
 
-  app.use(app.router);
-});
+// Socket IO
 
-app.get('/:channel', function(req, res, next){
-	
-});
-
-app.listen(process.env.PORT || 8787);
-console.log('Running...');
-
-var io = require('socket.io').listen(server);
-io.sockets.on('connection', function(socket){
-
-	socket.on('message', function(message){
-		socket.broadcast.emit('message', message);
+var io = require('socket.io').listen(server, {log:false});
+io.sockets.on('connection', function(socket) {
+	var channel;
+	socket.on('join', function(data) {
+		channel = data.channel;
+		console.log(data.type, 'joined channel', channel);
+		socket.join(channel);
 	});
-
-	socket.on('key down', function(data){
-		socket.broadcast.emit('key down', data);
-	});
-
-	socket.on('key up', function(data){
-		socket.broadcast.emit('key up', data);
-	});
-
-	socket.on('flowtime minimap complete', function(data){
-		socket.broadcast.emit('flowtime minimap complete', data);
-	});
-
-	socket.on('navigate', function(data){
-		socket.broadcast.emit('navigate', data);
-	});
-
-	socket.on('disconnect', function(){
-		console.log("Connection " + socket.id + " terminated.");
+	socket.on('event', function(data){
+		console.log('Broadcasting to channel', channel);
+		socket.broadcast.to(channel).emit('event', data);
 	});
 });
  
+// Utils
+
+function send(res, name) {
+	res.sendfile(__dirname + '/static/'+name);
+}
+// Routes
+
+app.use(app.router);
+
+
+app.get('/favicon.ico', function(req, res) {
+	// TODO
+	res.send(200);
+});
+
+app.get('/bookmarklet/:channel', function(req, res) {
+	send(res, 'bookmarklet.html');
+});
+
+app.get('/_js/:channel', function(req, res){
+	send(res, 'script.js');
+});
+
+app.get('/remote/:channel', function(req, res){
+	send(res, 'remote.html');
+});
+
+app.get('/test', function(req, res) {
+	send(res, 'test.html');
+});
+
+server.listen(process.env.PORT || 8787);
+console.log('Running...');
+

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <title>Remote</title>
+        <meta name="description" content="" />
+        <meta name="viewport" content="width=100" />
+    </head>
+    
+    <body>
+        <button id="button" data-key="37">Left</button>
+        <button id="button" data-key="39">Right</button>
+        <textarea id="text"></textarea>
+
+        <script type="text/javascript" src="/socket.io/socket.io.js"></script>
+        <script type="text/javascript">
+
+        var channel = location.pathname.split('/').pop();
+        var socket = io.connect();
+
+        socket.on('connect', function () {
+            console.log('connected to channel', channel);
+            socket.emit('join', {type:'remote', channel:channel});
+        });
+
+        var IGNORE = [16, 17, 18, 20];
+        window.onkeyup = function(e) {
+            e.preventDefault();
+
+            var code = e.keyCode || e.which;
+            if (IGNORE.indexOf(code) !== -1) return;
+
+            console.info('Sending key', code, 'to', channel);
+            socket.emit('event', { type:'key', code: code, channel:channel });
+        };
+
+        function sendButton() {
+            var data = this.dataset;
+            var code = parseInt(data.key) || (data.char || this.innerHTML).toLowerCase().charCodeAt(0);
+            console.info('Sending button', code, 'to', channel);
+            socket.emit('event', { type:'button', code: code, channel:channel });
+        }
+        
+        var buttons = document.getElementsByTagName('button');
+        for (var i = 0; i < buttons.length; i++) {
+            /*buttons[i].ontouchstart = */buttons[i].onclick = sendButton;
+        }
+        </script>
+    </body>
+</html>
