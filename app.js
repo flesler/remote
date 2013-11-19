@@ -30,9 +30,8 @@ function send(res, name) {
 app.use(app.router);
 
 
-app.get('/favicon.ico', function(req, res) {
-	// TODO
-	res.send(200);
+app.get('/', function(req, res) {
+	send(res, 'index.html');
 });
 
 app.get('/bookmarklet/:channel', function(req, res) {
@@ -49,6 +48,11 @@ app.get('/remote/:channel', function(req, res){
 
 app.get('/test', function(req, res) {
 	send(res, 'test.html');
+});
+
+app.get('/favicon.ico', function(req, res) {
+	// TODO
+	res.send(200);
 });
 
 server.listen(process.env.PORT || 8787);
