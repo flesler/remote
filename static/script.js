@@ -34,6 +34,7 @@
 		});
 		socket.on('event', function (data) {
 				var code = data.code;
+				console.log('Received key', code, 'on', channel);
 				trigger('keydown', code);
 				trigger('keyup', code);
 				trigger('keypress', code);
@@ -41,7 +42,6 @@
 	}
 
 	function trigger(event, code) {
-		console.log('Received key', code, 'on', channel);
 		// FIXME: Doesn't work well
 		try {
 			var e = document.createEvent('KeyboardEvent');
