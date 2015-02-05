@@ -1,10 +1,13 @@
 (function(){
-
 	function log() {
 		if (window.console) {
 			console.log.apply(console, arguments);
 		}
 	}
+	// If bookmarklet called again, just re-show the QR
+	window._BCC_ = function() {
+		if (img) img.style.display = 'block';
+	};
 
 	var scripts = document.getElementsByTagName('script'),
 		l = scripts.length;
@@ -93,7 +96,7 @@
 	//- Show QR code to controller
 
 	function showQR() {
-		img = new Image();
+		window._BCIMG_ = img = new Image();
 		var sty = img.style;
 		sty.position = 'fixed';
 		sty.top = '50px';
@@ -113,9 +116,7 @@
 	}
 
 	function hideQR() {
-		if (img.parentNode) {
-			img.parentNode.removeChild(img);
-		}
+		img.style.display = 'none';
 	}
 
 	//- Trigger fake events

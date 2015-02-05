@@ -26,7 +26,7 @@
 			for (var key in buttons) {
 				qs += (qs ? '&' : '?') + encodeURIComponent(key) + '=' + encodeURIComponent(buttons[key]);
 			}
-			link.href = 'javascript:(function(){if(this._remote_)return;this._remote_=true;var s=document.createElement("script");s.type="text/javascript";s.src="%s";document.documentElement.lastChild.appendChild(s);})();'.replace('%s', url+qs);
+			link.href = 'javascript:(function(){if(this._BCC_)return this._BCC_();var s=document.createElement("script");s.type="text/javascript";s.src="%s";document.documentElement.lastChild.appendChild(s);})();'.replace('%s', url+qs);
 			document.body.appendChild(link);
 		}
 		// TEMP
