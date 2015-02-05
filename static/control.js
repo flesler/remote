@@ -52,7 +52,7 @@
 		});
 		socket.on('event', function (data) {
 			var code = data.code;
-			var flags = parse(code, 10);
+			var flags = parse(code);
 			console.log('Received', flags || code, 'on', channel);
 
 			if (flags) {
@@ -68,7 +68,7 @@
 	}
 
 	function parse(code) {
-		if (code.indexOf('+') || !isNaN(code)) {
+		if (!isNaN(code) || /^([csa]\+){0,3}\d+$/.test(code)) {
 			var f = {};
 			var p = code.split('+');
 			f.code = parseInt(p.pop(), 10);
