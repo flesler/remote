@@ -1,93 +1,86 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-        <title>Remote</title>
-        <meta name="description" content="" />
-        <meta name="viewport" content="width=180, user-scalable=no" />
-        <style type="text/css">
-            html, body {
-                margin:0;
-                padding:0;
-                background: #CCC;
-                width:180px;
-            }
-            button {
-                position: absolute;
-                width: 60px;
-                height: 60px;
-                cursor: pointer;
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+		<title>Remote</title>
+		<meta name="description" content="" />
+		<meta name="viewport" content="width=180, user-scalable=no" />
+		<style type="text/css">
+			html, body {
+				margin:0;
+				padding: 0;
+				background: #CCC;
+				width:180px;
+				height: 100%;
+			}
+			button {
+				height: 100%;
+				float: left;
+				cursor: pointer;
+				-webkit-user-select:none;
+				-moz-user-select:none;
+				-ms-user-select:none;
+				user-select:none;
+			}
+		</style>
+	</head>
+	<body>
+		<script type="text/javascript" src="/socket.io/socket.io.js"></script>
+		<script type="text/javascript">
+		var buttons = {}, count = 0;
+		var params = location.search.slice(1).split('&');
+		params.forEach(function(p) {
+			var ps = p.split('=').map(decodeURIComponent);
+			var k = ps[0];
+			var v = ps[1];
+			if (k === 'channel') {
+			channel = v;
+			} else {
+			buttons[k] = v;
+			}
+		});
 
-                -webkit-user-select:none;
-                -moz-user-select:none;
-                -ms-user-select:none;
-                user-select:none;
-            }
-            .left {
-                margin-top:-30px;
-                top:50%;
-                left:10px;
-            }
-            .right {
-                margin-top:-30px;
-                top:50%;
-                right:10px;
-            }
-            .top {
-                margin-left:-30px;
-                top:10px;
-                left:50%;
-            }
-            .bottom {
-                margin-left:-30px;
-                bottom:10px;
-                left:50%;
-            }
-        </style>
-    </head>
-    <body>
-        <button class="left" data-key="37">&lt;</button>
-        <button class="right" data-key="39">&gt;</button>
-        <button class="top" data-key="38">^</button>
-        <button class="bottom" data-key="40">v</button>
+		var socket = io.connect();
 
-        <script type="text/javascript" src="/socket.io/socket.io.js"></script>
-        <script type="text/javascript">
-        var channel = location.pathname.split('/').pop();
-        var socket = io.connect();
+		socket.on('connect', function () {
+			console.log('connected to channel', channel);
+			socket.emit('join', {type:'remote', channel:channel});
+			
+			for (var text in buttons) {
+				addButton(text, buttons[text]);
+			}
+		});
 
-        socket.on('connect', function () {
-            console.log('connected to channel', channel);
-            socket.emit('join', {type:'remote', channel:channel});
-        });
+		function addButton(text, code) {
+			var btn = document.createElement('button');
+			btn.innerHTML = text.charAt(0).toUpperCase() + text.slice(1);
+			function handler() {
+				console.info('Sending button', code, 'to', channel);
+				socket.emit('event', { type:'button', code: code, channel:channel });
+			};
+			if ('ontouchstart' in btn) {
+				btn.ontouchstart = handler;
+			} else {
+				btn.onmousedown = handler;
+			}
+			var count = Object.keys(buttons).length;
+			btn.style.width = 100 / count + '%';
+			document.body.appendChild(btn);
+		}
 
-        var IGNORE = [16, 17, 18, 20];
-        window.onkeyup = function(e) {
-            e.preventDefault();
+		var IGNORE = [16, 17, 18, 20];
+		window.onkeyup = function(e) {
+			e.preventDefault();
 
-            var code = e.keyCode || e.which;
-            if (IGNORE.indexOf(code) !== -1) return;
+			var code = e.keyCode || e.which;
+			if (IGNORE.indexOf(code) !== -1) return;
+			if (e.altKey) code = 'a+'+code;
+			if (e.shiftKey) code = 's+'+code;
+			if (e.ctrlKey || e.metaKey) code = 'c+'+code;
 
-            console.info('Sending key', code, 'to', channel);
-            socket.emit('event', { type:'key', code: code, channel:channel });
-        };
-
-        function sendButton() {
-            var data = this.dataset;
-            var code = parseInt(data.key) || (data.char || this.innerHTML).toLowerCase().charCodeAt(0);
-            console.info('Sending button', code, 'to', channel);
-            socket.emit('event', { type:'button', code: code, channel:channel });
-        }
-        
-        var buttons = document.getElementsByTagName('button');
-        for (var i = 0; i < buttons.length; i++) {
-            var button = buttons[i];
-            if ('ontouchstart' in button) {
-                button.ontouchstart = sendButton;
-            } else {
-                button.onmousedown = sendButton;
-            }
-        }
-        </script>
-    </body>
+			console.info('Sending key', code, 'to', channel);
+			socket.emit('event', { type:'key', code: code+'', channel:channel });
+		};
+		</script>
+	</body>
 </html>

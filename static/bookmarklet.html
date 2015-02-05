@@ -1,33 +1,37 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-        <title>Bookmarklet</title>
-        <meta name="description" content="" />
-        <style type="text/css">
-        a {
-            padding:5px 10px;
-            background: #EEE;
-            border:1px solid #AAA;
-            margin-left:10px;
-        }
-        </style>
-    </head>
-    <body>
-        <p>Drag this link to your bookmark bar:</p>
-        <a id="link"></a>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+		<title>Bookmarklet</title>
+		<meta name="description" content="" />
+		<style type="text/css">
+		a {
+			padding:5px 10px;
+			background: #EEE;
+			border:1px solid #AAA;
+			margin-left:10px;
+		}
+		</style>
+	</head>
+	<body>
+		<p>Drag a link to your bookmark bar:</p>
 
-        <script type="text/javascript">
-        var link = document.getElementById('link');
-        link.innerHTML = 'Remote('+location.pathname.split('/').pop()+')';
-        link.onclick = function() { return false; };
-
-        var url = location.href.replace('bookmarklet', '_js');
-        if (url.indexOf('herokuapp') !== -1) {
-            url = url.replace('http:', 'https:');
-        }
-
-        link.href = 'javascript:(function(){if(this._remote_)return;this._remote_=true;var s=document.createElement("script");s.type="text/javascript";s.src="%s";document.documentElement.lastChild.appendChild(s);})();'.replace('%s', url);
-        </script>
-    </body>
+		<script type="text/javascript">
+		function addLink(name, buttons) {
+			var link = document.createElement('a');
+			link.onclick = function() { return false; };
+			link.innerHTML = name;
+			var url = '//'+ location.host + '/_control';
+			var qs = '';
+			for (var key in buttons) {
+				qs += (qs ? '&' : '?') + encodeURIComponent(key) + '=' + encodeURIComponent(buttons[key]);
+			}
+			link.href = 'javascript:(function(){if(this._remote_)return;this._remote_=true;var s=document.createElement("script");s.type="text/javascript";s.src="%s";document.documentElement.lastChild.appendChild(s);})();'.replace('%s', url+qs);
+			document.body.appendChild(link);
+		}
+		// TEMP
+		addLink('Netflix', {play:32})
+		addLink('Spotify', {previous:'s+37', play:32, next:'s+39'});
+		</script>
+	</body>
 </html>

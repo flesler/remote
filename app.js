@@ -1,5 +1,3 @@
-var fs = require('fs');
-
 var app = require('express')();
 var server = require('http').createServer(app);
 
@@ -13,6 +11,7 @@ io.sockets.on('connection', function(socket) {
 		channel = data.channel;
 		console.log(data.type, 'joined channel', channel);
 		socket.join(channel);
+		socket.broadcast.to(channel).emit('join', data);
 	});
 	socket.on('event', function(data){
 		console.log('Broadcasting to channel', channel);
@@ -34,15 +33,15 @@ app.get('/', function(req, res) {
 	send(res, 'index.html');
 });
 
-app.get('/bookmarklet/:channel', function(req, res) {
+app.get('/bookmarklet', function(req, res) {
 	send(res, 'bookmarklet.html');
 });
 
-app.get('/_js/:channel', function(req, res){
-	send(res, 'script.js');
+app.get('/_control', function(req, res){
+	send(res, 'control.js');
 });
 
-app.get('/remote/:channel', function(req, res){
+app.get('/remote', function(req, res){
 	send(res, 'remote.html');
 });
 
@@ -55,6 +54,7 @@ app.get('/favicon.ico', function(req, res) {
 	res.send(200);
 });
 
-server.listen(process.env.PORT || 8787);
-console.log('Running...');
-
+var port = process.env.PORT || 8787;
+server.listen(port, function() {
+	console.log('Remote server running on port', port);
+});
