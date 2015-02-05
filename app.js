@@ -30,10 +30,6 @@ app.use(app.router);
 
 
 app.get('/', function(req, res) {
-	send(res, 'index.html');
-});
-
-app.get('/bookmarklet', function(req, res) {
 	send(res, 'bookmarklet.html');
 });
 

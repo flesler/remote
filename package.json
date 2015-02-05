@@ -11,5 +11,9 @@
   "repository": "git://github.com/flesler/remote.git",
   "keywords": [],
   "author": "Ariel Flesler",
-  "license": "BSD"
+  "license": "BSD",
+  "engines": {
+    "node": "0.10.x",
+    "npm": "1.4.x"
+  }
 }
