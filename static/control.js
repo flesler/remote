@@ -118,7 +118,9 @@
 			background:'black',
 			color: 'white'
 		});
-		var data = base + '/remote?c='+channel+'&'+qs;
+		var data = base + '/remote?';
+		if (!match) data += 'c='+channel+'&';
+		data += qs;
 		var img = document.createElement('img');
 		style(img, {marginTop: '5px', cursor:'pointer'});
 		img.src = 'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data='+encodeURIComponent(data);
