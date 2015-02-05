@@ -26,7 +26,11 @@
 	};
 	document.documentElement.lastChild.appendChild(script);
 
-	var channel = generateChannel(), img;
+	var channel = localStorage._BRC_, img;
+	// Try to continue using the same channel
+	if (!channel) {
+		channel = localStorage._BRC_ = generateChannel();
+	}
 
 	//- Socket IO
 
@@ -45,12 +49,13 @@
 			socket.emit('join', {type:'client', channel:channel});
 		});
 		socket.on('join', function (data) {
-			if (data.type === 'remote' && img.parentNode) {
+			if (data.type === 'remote') {
 				console.log('Remote connected');
-				img.parentNode.removeChild(img);
+				hideQR();
 			}
 		});
 		socket.on('event', function (data) {
+			hideQR();
 			var code = data.code;
 			var flags = parse(code);
 			console.log('Received', flags || code, 'on', channel);
@@ -66,6 +71,7 @@
 
 		showQR();
 	}
+
 
 	function parse(code) {
 		if (!isNaN(code) || /^([csa]\+){0,3}\d+$/.test(code)) {
@@ -83,7 +89,7 @@
 	function showQR() {
 		img = new Image();
 		var sty = img.style;
-		sty.position = 'absolute';
+		sty.position = 'fixed';
 		sty.top = '50px';
 		sty.left = '50%';
 		sty.marginLeft = '-75px';
@@ -98,6 +104,12 @@
 		var data = base + '/remote?channel='+channel+'&'+qs;
 		img.src = 'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data='+encodeURIComponent(data);
 		document.body.appendChild(img);
+	}
+
+	function hideQR() {
+		if (img.parentNode) {
+			img.parentNode.removeChild(img);
+		}
 	}
 
 	//- Trigger fake events
