@@ -6,7 +6,7 @@
 	}
 	// If bookmarklet called again, just re-show the QR
 	window._BCC_ = function() {
-		if (img) img.style.display = 'block';
+		if (qr) qr.style.display = 'block';
 	};
 
 	var scripts = document.getElementsByTagName('script'),
@@ -35,9 +35,16 @@
 	};
 	document.documentElement.lastChild.appendChild(script);
 
-	var channel = localStorage._BRC_, img;
-	// Try to continue using the same channel
-	if (!channel) {
+	var channel, qr,
+		match = qs.match(/c=([^&]+)/);
+
+	if (match) {
+		// The channel can be provided in the URL
+		channel = match[1];
+	} else if (localStorage._BRC_) {
+		// Try to continue using the same channel
+		channel = localStorage._BRC_;
+	} else {
 		channel = localStorage._BRC_ = generateChannel();
 	}
 
@@ -96,27 +103,40 @@
 	//- Show QR code to controller
 
 	function showQR() {
-		window._BCIMG_ = img = new Image();
-		var sty = img.style;
-		sty.position = 'fixed';
-		sty.top = '50px';
-		sty.left = '50%';
-		sty.marginLeft = '-75px';
-		sty.cursor = 'pointer';
-		sty.zIndex = 9999;
-		sty.background = 'black';
-		sty.padding = '5px';
+		qr = document.createElement('div');
+		qr.innerHTML = channel+'<br/>';
+		style(qr, {
+			width: '150px',
+			height: '175px',
+			padding: '5px',
+			textAlign: 'center',
+			position:'fixed',
+			top:'50px',
+			left:'50%',
+			marginLeft:'-75px',
+			zIndex:9999,
+			background:'black',
+			color: 'white'
+		});
+		var data = base + '/remote?c='+channel+'&'+qs;
+		var img = document.createElement('img');
+		style(img, {marginTop: '5px', cursor:'pointer'});
+		img.src = 'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data='+encodeURIComponent(data);
 		img.onclick = function() {
-			// TEMP
 			window.open(data);
 		};
-		var data = base + '/remote?channel='+channel+'&'+qs;
-		img.src = 'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data='+encodeURIComponent(data);
-		document.body.appendChild(img);
+		qr.appendChild(img);
+		document.body.appendChild(qr);
 	}
 
 	function hideQR() {
-		img.style.display = 'none';
+		qr.style.display = 'none';
+	}
+
+	function style(node, attrs) {
+		for (var key in attrs) {
+			node.style[key] = attrs[key];
+		}
 	}
 
 	//- Trigger fake events

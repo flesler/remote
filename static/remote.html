@@ -32,74 +32,91 @@
 				position: absolute;
   			top: 0; left: 0; bottom: 0; right: 0;
 			}
+			#channel {
+				position: absolute;
+				top: 5px;
+				left: 5px;
+				color: #555;
+				font-weight: bold;
+			}
 		</style>
 	</head>
 	<body>
+		<div id="channel"></div>
 		<script type="text/javascript" src="/socket.io/socket.io.js"></script>
 		<script type="text/javascript">
-		function log() {
-			if (window.console) {
-				console.log.apply(console, arguments);
+		(function() {
+
+			function log() {
+				if (window.console) {
+					console.log.apply(console, arguments);
+				}
 			}
-		}
 
-		var buttons = {}, count = 0;
-		var params = location.search.slice(1).split('&');
-		params.forEach(function(p) {
-			var ps = p.split('=').map(decodeURIComponent);
-			var k = ps[0];
-			var v = ps[1];
-			if (k === 'channel') {
-				channel = v;
-			} else {
-				buttons[k] = v;
+			var buttons = {}, channel;
+			var params = location.search.slice(1).split('&');
+			params.forEach(function(p) {
+				var ps = p.split('=').map(decodeURIComponent);
+				var k = ps[0];
+				var v = ps[1];
+				if (k === 'c') {
+					channel = v;
+				} else {
+					buttons[k] = v;
+				}
+			});
+
+			if (!channel) {
+				return alert('No channel specified');
 			}
-		});
 
-		var socket = io.connect();
+			document.getElementById('channel').innerHTML = channel;
 
-		socket.on('connect', function () {
-			log('connected to channel', channel);
-			socket.emit('join', {type:'remote', channel:channel});
-			
-			for (var text in buttons) {
-				addButton(text, buttons[text]);
+			var socket = io.connect();
+
+			socket.on('connect', function () {
+				log('connected to channel', channel);
+				socket.emit('join', {type:'remote', channel:channel});
+				
+				for (var text in buttons) {
+					addButton(text, buttons[text]);
+				}
+				// Don't allow re-adding more on reconnects
+				buttons = {};
+			});
+
+			function addButton(text, code) {
+				var btn = document.createElement('div');
+				var count = Object.keys(buttons).length;
+				var num = Math.floor(12 / count);
+				btn.className = 'btn btn-default col-xs-'+num;
+				btn.innerHTML = '<span class="glyphicon glyphicon-'+text+'" title="'+text+'" />';
+				function handler() {
+					log('Sending button', code, 'to', channel);
+					socket.emit('event', { type:'button', code: code, channel:channel });
+				}
+				if ('ontouchend' in btn) {
+					btn.ontouchend = handler;
+				} else {
+					btn.onmouseup = handler;
+				}
+				document.getElementById('buttons').appendChild(btn);
 			}
-			// Don't allow re-adding more on reconnects
-			buttons = {};
-		});
 
-		function addButton(text, code) {
-			var btn = document.createElement('div');
-			var count = Object.keys(buttons).length;
-			var num = Math.floor(12 / count);
-			btn.className = 'btn btn-default col-xs-'+num;
-			btn.innerHTML = '<span class="glyphicon glyphicon-'+text+'" title="'+text+'" />';
-			function handler() {
-				log('Sending button', code, 'to', channel);
-				socket.emit('event', { type:'button', code: code, channel:channel });
-			}
-			if ('ontouchend' in btn) {
-				btn.ontouchend = handler;
-			} else {
-				btn.onmouseup = handler;
-			}
-			document.getElementById('buttons').appendChild(btn);
-		}
+			var IGNORE = [16, 17, 18, 20];
+			window.onkeyup = function(e) {
+				e.preventDefault();
 
-		var IGNORE = [16, 17, 18, 20];
-		window.onkeyup = function(e) {
-			e.preventDefault();
+				var code = e.keyCode || e.which;
+				if (IGNORE.indexOf(code) !== -1) return;
+				if (e.altKey) code = 'a+'+code;
+				if (e.shiftKey) code = 's+'+code;
+				if (e.ctrlKey || e.metaKey) code = 'c+'+code;
 
-			var code = e.keyCode || e.which;
-			if (IGNORE.indexOf(code) !== -1) return;
-			if (e.altKey) code = 'a+'+code;
-			if (e.shiftKey) code = 's+'+code;
-			if (e.ctrlKey || e.metaKey) code = 'c+'+code;
-
-			log('Sending key', code, 'to', channel);
-			socket.emit('event', { type:'key', code: code+'', channel:channel });
-		};
+				log('Sending key', code, 'to', channel);
+				socket.emit('event', { type:'key', code: code+'', channel:channel });
+			};
+		})();
 		</script>
 		<div class="container-fluid">
 			<div class="row" id="buttons">

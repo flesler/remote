@@ -5,6 +5,11 @@
 		<title>Bookmarklet</title>
 		<meta name="description" content="" />
 		<style type="text/css">
+		span {
+			cursor: pointer;
+			color: blue;
+			text-decoration: underline;
+		}
 		a {
 			padding:5px 10px;
 			background: #EEE;
@@ -14,26 +19,44 @@
 		</style>
 	</head>
 	<body>
-		<p>Drag a link to your bookmarks bar.</p>
-		<p>Click it while on the service tab and scan the QR with your phone.</p>
+		<ol>
+			<li>Optional: Pick a <span onclick="pick()">channel</span></li>
+			<li>Drag a link to your bookmarks bar</li>
+			<li>Click on it while on the service tab</li>
+			<li>Scan the QR with your phone, it will open the remote</li>
+		</ol>
+		<div id="links"></div>
 
 		<script type="text/javascript">
+		var channel;
+
 		function addLink(name, buttons) {
 			var link = document.createElement('a');
 			link.onclick = function() { return false; };
 			link.innerHTML = name;
 			var url = '//'+ location.host + '/_control';
-			var qs = '';
+			var qs = channel ? '?c='+channel : '';
 			for (var key in buttons) {
 				qs += (qs ? '&' : '?') + encodeURIComponent(key) + '=' + encodeURIComponent(buttons[key]);
 			}
 			link.href = 'javascript:(function(){if(this._BCC_)return this._BCC_();var s=document.createElement("script");s.type="text/javascript";s.src="%s";document.documentElement.lastChild.appendChild(s);})();'.replace('%s', url+qs);
-			document.body.appendChild(link);
+			document.getElementById('links').appendChild(link);
 		}
-		// TEMP
-		addLink('Netflix 1.0', {play:32, 'volume-down':40, 'volume-up':38, 'step-forward':'.player-next-episode,.player-postplay-still-hover,.recentlyWatched a'});
-		addLink('Spotify 1.0', {'step-backward':'s+37', play:32, 'step-forward':'s+39'});
-		addLink('YouTube 1.0', {play:'*+.ytp-button', 'volume-off':'.ytp-button-volume', 'fast-backward':'.ytp-button-prev', 'fast-forward':'.ytp-button-next'});
+
+		function pick() {
+			var c = prompt('Pick a channel, leave empty to auto-generate', channel);
+			if (c == null) return;
+			channel = c;
+			generate();
+		}
+
+		function generate() {
+			document.getElementById('links').innerHTML = '';
+			addLink('Netflix', {play:32, 'volume-down':40, 'volume-up':38, 'step-forward':'.player-next-episode,.player-postplay-still-hover,.recentlyWatched a'});
+			addLink('Spotify', {'step-backward':'s+37', play:32, 'step-forward':'s+39'});
+			addLink('YouTube', {play:'*+.ytp-button', 'volume-off':'.ytp-button-volume', 'fast-backward':'.ytp-button-prev', 'fast-forward':'.ytp-button-next'});
+		}
+		generate();
 		</script>
 	</body>
 </html>
