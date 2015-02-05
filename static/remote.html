@@ -1,26 +1,36 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 	<head>
 		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 		<title>Remote</title>
 		<meta name="description" content="" />
-		<meta name="viewport" content="width=180, user-scalable=no" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+		<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css" />
 		<style type="text/css">
 			html, body {
-				margin:0;
 				padding: 0;
 				background: #CCC;
-				width:180px;
+			}
+			html, body, .container-fluid, .row, .btn-group, .btn {
+				margin:0;
 				height: 100%;
 			}
-			button {
-				height: 100%;
-				float: left;
-				cursor: pointer;
-				-webkit-user-select:none;
-				-moz-user-select:none;
-				-ms-user-select:none;
-				user-select:none;
+			.container-fluid {
+				padding: 5%;
+			}
+			.btn {
+				text-transform: capitalize;
+			}
+			span:before {
+				/* If not a valid glyphicon show text */
+				content: attr(title);
+			}
+			.glyphicon {
+				font-size: 30px;
+				height: 30px;
+				margin: auto;
+				position: absolute;
+  			top: 0; left: 0; bottom: 0; right: 0;
 			}
 		</style>
 	</head>
@@ -34,9 +44,9 @@
 			var k = ps[0];
 			var v = ps[1];
 			if (k === 'channel') {
-			channel = v;
+				channel = v;
 			} else {
-			buttons[k] = v;
+				buttons[k] = v;
 			}
 		});
 
@@ -49,23 +59,26 @@
 			for (var text in buttons) {
 				addButton(text, buttons[text]);
 			}
+			// Don't allow re-adding more on reconnects
+			buttons = {};
 		});
 
 		function addButton(text, code) {
-			var btn = document.createElement('button');
-			btn.innerHTML = text.charAt(0).toUpperCase() + text.slice(1);
+			var btn = document.createElement('div');
+			var count = Object.keys(buttons).length;
+			var num = Math.floor(12 / count);
+			btn.className = 'btn btn-default col-xs-'+num;
+			btn.innerHTML = '<span class="glyphicon glyphicon-'+text+'" title="'+text+'" />';
 			function handler() {
 				console.info('Sending button', code, 'to', channel);
 				socket.emit('event', { type:'button', code: code, channel:channel });
-			};
-			if ('ontouchstart' in btn) {
-				btn.ontouchstart = handler;
-			} else {
-				btn.onmousedown = handler;
 			}
-			var count = Object.keys(buttons).length;
-			btn.style.width = 100 / count + '%';
-			document.body.appendChild(btn);
+			if ('ontouchend' in btn) {
+				btn.ontouchend = handler;
+			} else {
+				btn.onmouseup = handler;
+			}
+			document.getElementById('buttons').appendChild(btn);
 		}
 
 		var IGNORE = [16, 17, 18, 20];
@@ -82,5 +95,9 @@
 			socket.emit('event', { type:'key', code: code+'', channel:channel });
 		};
 		</script>
+		<div class="container-fluid">
+			<div class="row" id="buttons">
+			</div>
+		</div>
 	</body>
 </html>

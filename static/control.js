@@ -51,13 +51,16 @@
 			}
 		});
 		socket.on('event', function (data) {
-			var flags = parse(data.code, 10);
+			var code = data.code;
+			var flags = parse(code, 10);
+			console.log('Received', flags || code, 'on', channel);
+
 			if (flags) {
 				trigger('keydown', flags);
 				trigger('keyup', flags);
-				trigger('keypress', flags)
+				trigger('keypress', flags);
 			} else {
-				click(data.code);
+				click(code);
 			}
 		});
 
@@ -100,7 +103,6 @@
 	//- Trigger fake events
 
 	function trigger(event, flags) {
-		console.log('Received key', flags, 'on', channel);
 		// FIXME: Doesn't work well
 		try {
 			var e = document.createEvent('KeyboardEvent');
