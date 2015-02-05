@@ -30,14 +30,16 @@
 		<script type="text/javascript">
 		var channel;
 
-		function addLink(name, buttons) {
+		function addLink(name, params) {
 			var link = document.createElement('a');
 			link.onclick = function() { return false; };
 			link.innerHTML = name;
 			var url = '//'+ location.host + '/_control';
-			var qs = channel ? '?c='+channel : '';
-			for (var key in buttons) {
-				qs += (qs ? '&' : '?') + encodeURIComponent(key) + '=' + encodeURIComponent(buttons[key]);
+			var qs = '';
+			if (channel) params.c = channel;
+			params.n = name;
+			for (var key in params) {
+				qs += (qs ? '&' : '?') + encodeURIComponent(key) + '=' + encodeURIComponent(params[key]);
 			}
 			link.href = 'javascript:(function(){if(this._BCC_)return this._BCC_();var s=document.createElement("script");s.type="text/javascript";s.src="%s";document.documentElement.lastChild.appendChild(s);})();'.replace('%s', url+qs);
 			document.getElementById('links').appendChild(link);
