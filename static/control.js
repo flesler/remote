@@ -1,5 +1,11 @@
 (function(){
 
+	function log() {
+		if (window.console) {
+			console.log.apply(console, arguments);
+		}
+	}
+
 	var scripts = document.getElementsByTagName('script'),
 		l = scripts.length;
 	
@@ -15,7 +21,7 @@
 
 	if (!base) return alert('Failed to find script!');
 
-	console.info('Loading Socket IO');
+	log('Loading Socket IO');
 
 	var script = document.createElement('script');
 	script.type = 'text/javascript';
@@ -50,7 +56,7 @@
 		});
 		socket.on('join', function (data) {
 			if (data.type === 'remote') {
-				console.log('Remote connected');
+				log('Remote connected');
 				hideQR();
 			}
 		});
@@ -58,7 +64,7 @@
 			hideQR();
 			var code = data.code;
 			var flags = parse(code);
-			console.log('Received', flags || code, 'on', channel);
+			log('Received', flags || code, 'on', channel);
 
 			if (flags) {
 				trigger('keydown', flags);
@@ -134,12 +140,12 @@
 	}
 
 	function click(selector) {
-		console.log('Received click for', selector, 'on', channel);
+		log('Received click for', selector, 'on', channel);
 		if (selector.charAt(0) === '_') {
 			selector = '#'+selector.slice(1);
 		}
 		var node = document.querySelector(selector);
-		if (!node) return console.error('Element not found', selector);
+		if (!node) return log('Element not found', selector);
 		node.click();
 	}
 

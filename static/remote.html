@@ -37,6 +37,12 @@
 	<body>
 		<script type="text/javascript" src="/socket.io/socket.io.js"></script>
 		<script type="text/javascript">
+		function log() {
+			if (window.console) {
+				console.log.apply(console, arguments);
+			}
+		}
+
 		var buttons = {}, count = 0;
 		var params = location.search.slice(1).split('&');
 		params.forEach(function(p) {
@@ -53,7 +59,7 @@
 		var socket = io.connect();
 
 		socket.on('connect', function () {
-			console.log('connected to channel', channel);
+			log('connected to channel', channel);
 			socket.emit('join', {type:'remote', channel:channel});
 			
 			for (var text in buttons) {
@@ -70,7 +76,7 @@
 			btn.className = 'btn btn-default col-xs-'+num;
 			btn.innerHTML = '<span class="glyphicon glyphicon-'+text+'" title="'+text+'" />';
 			function handler() {
-				console.info('Sending button', code, 'to', channel);
+				log('Sending button', code, 'to', channel);
 				socket.emit('event', { type:'button', code: code, channel:channel });
 			}
 			if ('ontouchend' in btn) {
@@ -91,7 +97,7 @@
 			if (e.shiftKey) code = 's+'+code;
 			if (e.ctrlKey || e.metaKey) code = 'c+'+code;
 
-			console.info('Sending key', code, 'to', channel);
+			log('Sending key', code, 'to', channel);
 			socket.emit('event', { type:'key', code: code+'', channel:channel });
 		};
 		</script>
