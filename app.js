@@ -46,8 +46,7 @@ app.get('/test', function(req, res) {
 });
 
 app.get('/favicon.ico', function(req, res) {
-	// TODO
-	res.send(200);
+	send(res, 'favicon.ico');
 });
 
 var port = process.env.PORT || 8787;
